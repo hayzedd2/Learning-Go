@@ -10,12 +10,12 @@ import (
 )
 
 type Blog struct {
-	Title     string
-	Content   string
-	CreatedAt time.Time
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
-func (b Blog) BlogDisplay() {
+func (b Blog) Display() {
 	fmt.Printf("Your blog is titled %v and the content is:\n\n%v\n\n", b.Title, b.Content)
 
 }
@@ -28,7 +28,6 @@ func (b Blog) SaveToFile() error {
 		return err
 	}
 	return os.WriteFile(fileName, json, 0644)
-
 }
 func New(title, content string) (Blog, error) {
 	if title == "" || content == "" {
