@@ -1,19 +1,33 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	numbers := []int{1, 2, 5, 6}
-	doubledNumbers := doubleNumbers(&numbers)
-	fmt.Println(doubledNumbers)
+	fact := factorial(6)
+	numbers := []int{1, 3, 4, 5, 5}
+	sum := sumUp(numbers...)
+	fmt.Println(fact)
+	fmt.Println(sum)
 }
 
-func doubleNumbers(nums *[]int) []int {
-	dNumbers := []int{}
-	for _, v := range *nums {
-		dNumbers = append(dNumbers, v/2)
+func factorial(number int) int {
+	if number == 0 {
+		return 1
 	}
+	return number * (number - 1)
+	// result := 1
+	// for i := 1; i <= number; i++ {
+	// 	result *= i
+	// }
+	// return result
+}
 
-	return dNumbers
-
+func sumUp(numbers ...int) int {
+	sum := 0
+	for _, v := range numbers {
+		sum += v
+	}
+	return sum
 }
