@@ -2,23 +2,26 @@ package prices
 
 import (
 	"bufio"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"os"
 	"strconv"
+	"time"
 )
 
 type PriceTaxProcess struct {
-	TaxRate           float64
-	InputPrices       []float64
-	TaxIncludedPrices map[string]float64
+	TaxRate           float64            `json:"tax_rate"`
+	InputPrices       []float64          `json:"input_prices"`
+	TaxIncludedPrices map[string]float64 `json:"tax_included_prices"`
 }
 
-func (job *PriceTaxProcess) LoadData() {
+func (job *PriceTaxProcess) LoadData() error {
 	file, err := os.Open("prices.txt")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
-		return
+		return err
 	}
 	lines := []string{}
 	scanner := bufio.NewScanner(file)
@@ -34,16 +37,37 @@ func (job *PriceTaxProcess) LoadData() {
 		covertedPrice[i] = priceFloat
 	}
 	job.InputPrices = covertedPrice
+	return nil
 }
 
-func (job *PriceTaxProcess) Process() {
-	job.LoadData()
+func writeJson(path string, data interface{}) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return errors.New("failed to create file")
+	}
+	defer file.Close()
+	time.Sleep(3 * time.Second)
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(data)
+	if err != nil {
+		return errors.New("failed to convert data to jSON")
+	}
+	return nil
+}
+func (job *PriceTaxProcess) Process(chanStatus chan bool, errStatus chan error) {
+	err := job.LoadData()
+	if err != nil {
+		errStatus <- err
+		return
+	}
 	result := make(map[string]float64)
 	for _, price := range job.InputPrices {
 		taxIncludedPrices := price * (1 + job.TaxRate)
 		result[fmt.Sprintf("%0.2f", price)] = math.Round(taxIncludedPrices)
 	}
-	fmt.Println(result)
+	job.TaxIncludedPrices = result
+	writeJson(fmt.Sprintf("result_%.0f.json", job.TaxRate*100), job)
+	chanStatus <- true
 }
 
 func NewPriceTaxProcess(taxRate float64) *PriceTaxProcess {
